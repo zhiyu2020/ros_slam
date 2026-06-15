@@ -1,0 +1,6 @@
+Invoking command in '/root/ros/unitree_ws/src/build/slam_pkg': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /root/ros/unitree_ws/src/slam_pkg -DCMAKE_INSTALL_PREFIX=/root/ros/unitree_ws/src/install/slam_pkg
+Invoked command in '/root/ros/unitree_ws/src/build/slam_pkg' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /root/ros/unitree_ws/src/slam_pkg -DCMAKE_INSTALL_PREFIX=/root/ros/unitree_ws/src/install/slam_pkg
+Invoking command in '/root/ros/unitree_ws/src/build/slam_pkg': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/ros/unitree_ws/src/build/slam_pkg -- -j28 -l28
+Invoked command in '/root/ros/unitree_ws/src/build/slam_pkg' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /root/ros/unitree_ws/src/build/slam_pkg -- -j28 -l28
+Invoking command in '/root/ros/unitree_ws/src/build/slam_pkg': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /root/ros/unitree_ws/src/build/slam_pkg
+Invoked command in '/root/ros/unitree_ws/src/build/slam_pkg' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /root/ros/unitree_ws/src/build/slam_pkg

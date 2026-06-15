@@ -1,0 +1,26 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test and tooling cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Local ROS/CMake build leftovers
+build/
+install/
+log/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+
+# Editor / OS files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
