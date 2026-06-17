@@ -1,288 +1,262 @@
 # slam_pkg
 
-`slam_pkg` 是一个独立的 ROS 2 SLAM 仿真学习包。它参考了 `wpr_simulation2` 的 `robocup_home` 场景，但已经把仿真世界、机器人模型、家具模型、mesh 资源、SLAM 配置、RViz 配置和键盘控制节点移植到本包内部。
+`slam_pkg` is a ROS 2 Humble Gazebo Classic package for Unitree G1 SLAM
+experiments. It keeps two G1 workflows:
 
-## 1. 包内容
+- `g1_slam_sim.launch.py`: G1 with a simplified differential-drive chassis,
+  controlled through `/cmd_vel`.
+- `g1_rl_slam_sim.launch.py`: real G1 model controlled by `rl_sar`, without the
+  added chassis.
 
-主要目录如下：
+The package keeps all files under `config/`. Legacy WPB/WPR/WPV robot demos,
+people models, ball models, and old generic launch entries were removed for a
+cleaner GitHub project.
+
+## Layout
 
 ```text
 slam_pkg/
   config/
-    slam_toolbox.yaml          # slam_toolbox 建图参数
-    wpb_home_controller.yaml   # 原仿真控制配置资源
+    slam_toolbox.yaml
+    slam_toolbox_g1.yaml
+    slam_toolbox_g1_rl.yaml
+    nav2_params.yaml
+    wpb_home_controller.yaml
+    g1/robot_control_ros2.yaml
   launch/
-    slam.launch.py             # 一键启动仿真 + SLAM + RViz
-    robocup_home.launch.py     # 单独启动 Gazebo 仿真环境
-    spawn_wpb_lidar.launch.py  # 生成带激光雷达的机器人
-    spawn_objects.launch.py    # 生成家具和物体
-  models/                      # 机器人和家具模型
-  meshes/                      # 模型渲染用 mesh 和贴图
+    g1_slam_sim.launch.py      # G1 + simple chassis + /cmd_vel + SLAM
+    g1_rl_slam_sim.launch.py   # G1 + rl_sar + SLAM
+    gazebo.launch.py
+    spawn_g1.launch.py
+    spawn_objects.launch.py
+  meshes/
+    g1/                        # Required by the chassis G1 URDF
+    *.dae, *.stl               # robo_env furniture meshes
+  models/                      # robo_env furniture and bottle models
   rviz/
-    slam.rviz                  # SLAM 可视化配置
+    g1_slam.rviz
+    g1_rl_slam.rviz
   src/
-    keyboard_vel_cmd.cpp       # 键盘速度控制节点
+    keyboard_vel_cmd.cpp       # Publishes /cmd_vel for the chassis G1
+    sim_observer.cpp
+    gazebo_model_odom.cpp      # Gazebo model state -> /odom for RL G1
+  urdf/g1/
   worlds/
-    robocup_home.world         # 室内墙体世界
+    robocup_home.world         # robo_env room, wall height 2.8 m, center z 1.4 m
+    empty_room.world
+    g1_slam_room.world
+  xacro/g1/
+    g1_slam.urdf.xacro
+    g1_rl_slam.urdf.xacro
 ```
 
-## 2. 构建
+## Build
 
-进入 `unitree_ws` 工作区：
+For the RL workflow, build and source `rl_sar` first:
+
+```bash
+cd ~/ros/rl_sar
+source /opt/ros/humble/setup.bash
+colcon build --merge-install --packages-select robot_msgs robot_joint_controller g1_description rl_sar
+source install/setup.bash
+```
+
+Build `slam_pkg`:
 
 ```bash
 cd ~/ros/unitree_ws
+source /opt/ros/humble/setup.bash
+source ~/ros/rl_sar/install/setup.bash
 colcon build --packages-select slam_pkg
 source install/setup.bash
 ```
 
-如果改过 launch、model、mesh、world 或 C++ 节点，建议重新构建并重新 source：
+Docker example:
 
 ```bash
+docker exec -it 92048ad9f3dd /bin/bash
+source /opt/ros/humble/setup.bash
+source /root/ros/rl_sar/install/setup.bash
+cd /root/ros/unitree_ws
 colcon build --packages-select slam_pkg
 source install/setup.bash
 ```
 
-## 3. 单独启动仿真环境
+## Mode 1: Chassis G1
 
-只打开 Gazebo 仿真，不启动 SLAM：
-
-```bash
-ros2 launch slam_pkg robocup_home.launch.py
-```
-
-该 launch 会执行以下流程：
-
-1. 读取本包的 `worlds/robocup_home.world`。
-2. 启动 `gazebo_ros` 的 `gzserver`。
-3. 启动 `gazebo_ros` 的 `gzclient`。
-4. 调用 `spawn_wpb_lidar.launch.py` 生成机器人。
-5. 调用 `spawn_objects.launch.py` 生成床、沙发、桌子、柜子、椅子、瓶子等家具物体。
-
-机器人默认出生位置在：
+This mode keeps the earlier G1 with a simplified differential-drive chassis. It
+publishes:
 
 ```text
-x = -6.0
-y = -0.5
-yaw = 0.0
-```
-
-也可以在启动时修改：
-
-```bash
-ros2 launch slam_pkg robocup_home.launch.py \
-  robot_pose_x:=-6.0 \
-  robot_pose_y:=-0.5 \
-  robot_pose_theta:=0.0
-```
-
-## 4. 启动 SLAM
-
-启动仿真、`slam_toolbox` 和 RViz：
-
-```bash
-ros2 launch slam_pkg slam.launch.py
-```
-
-该 launch 默认调用本包自己的仿真环境：
-
-```text
-simulation_package = slam_pkg
-simulation_launch_file = robocup_home.launch.py
-```
-
-SLAM 参数在：
-
-```text
-config/slam_toolbox.yaml
-```
-
-关键配置：
-
-```yaml
-use_sim_time: true
-map_frame: map
-odom_frame: odom
-base_frame: base_footprint
-scan_topic: /scan
-mode: mapping
-```
-
-RViz 配置在：
-
-```text
-rviz/slam.rviz
-```
-
-RViz 中主要查看：
-
-```text
-/map
 /scan
-/robot_description
-TF: map -> odom -> base_footprint
-```
-
-## 5. 键盘控制机器人
-
-键盘控制节点已经从 `wpr_simulation2/src/keyboard_vel_cmd.cpp` 移植到：
-
-```text
-src/keyboard_vel_cmd.cpp
-```
-
-它发布速度到：
-
-```text
+/odom
 /cmd_vel
+TF: map -> odom -> base_footprint -> base_link -> base -> ... -> lidar_link
 ```
 
-机器人模型 `models/wpb_home_lidar.model` 中的 Gazebo 控制插件订阅 `cmd_vel`，因此可以直接控制仿真机器人。
-
-推荐开两个终端。
-
-终端 1：启动仿真或完整 SLAM：
+Launch with robo_env, SLAM, and RViz:
 
 ```bash
 cd ~/ros/unitree_ws
+source /opt/ros/humble/setup.bash
 source install/setup.bash
-ros2 launch slam_pkg slam.launch.py
+ros2 launch slam_pkg g1_slam_sim.launch.py use_slam:=true use_rviz:=true
 ```
 
-终端 2：启动键盘控制：
+Launch in an empty room:
+
+```bash
+ros2 launch slam_pkg g1_slam_sim.launch.py \
+  use_robo_env:=false \
+  world:=$HOME/ros/unitree_ws/install/slam_pkg/share/slam_pkg/worlds/empty_room.world
+```
+
+Let `sim_observer` publish a slow `/cmd_vel` command:
+
+```bash
+ros2 launch slam_pkg g1_slam_sim.launch.py \
+  use_slam:=true \
+  use_rviz:=true \
+  publish_cmd_vel:=true
+```
+
+Control it manually with the restored keyboard node:
 
 ```bash
 cd ~/ros/unitree_ws
+source /opt/ros/humble/setup.bash
 source install/setup.bash
 ros2 run slam_pkg keyboard_vel_cmd
 ```
 
-按键说明：
+Keyboard keys:
 
 ```text
-w      前进加速
-s      后退加速
-a      向左平移加速
-d      向右平移加速
-q      左旋加速
-e      右旋加速
-space  刹车
-x      退出
+w      forward
+s      backward
+a      left
+d      right
+q      turn left
+e      turn right
+space  stop
+x      exit
 ```
 
-速度每次按键增加：
-
-```text
-linear_vel  = 0.1
-angular_vel = 0.1
-最大倍率    = 3
-```
-
-也就是最大速度约为：
-
-```text
-linear.x  = +/-0.3
-linear.y  = +/-0.3
-angular.z = +/-0.3
-```
-
-## 6. 家具渲染修复方式
-
-Gazebo 中墙面能显示、家具不显示，通常是因为家具模型里的 mesh 路径无法被 Gazebo 正确解析。
-
-原模型里使用的是：
-
-```xml
-<mesh filename="package://slam_pkg/meshes/bookshelft.dae" />
-```
-
-这种 `package://` 路径在某些 `spawn_entity.py -file` 场景下可能解析失败。参考 `sim_pkg` 中 bookshelf 的成功写法，本包现在在 launch 运行时临时生成 patched model，把 mesh 路径改成绝对 `file://` 路径。
-
-例如运行前模型中是：
-
-```xml
-package://slam_pkg/meshes/bookshelft.dae
-```
-
-运行时会临时改成类似：
-
-```text
-file:///home/mscape/ros2/unitree_ws/install/slam_pkg/share/slam_pkg/meshes/bookshelft.dae
-```
-
-相关实现位置：
-
-```text
-launch/spawn_objects.launch.py
-launch/spawn_wpb_lidar.launch.py
-```
-
-临时 patched model 会写到系统临时目录：
-
-```text
-/tmp/slam_pkg_*.model
-```
-
-源码中的 `models/*.model` 仍然保留 `package://slam_pkg/...`，便于维护；真正给 Gazebo spawn 的是 patched 后的临时文件。
-
-## 7. 常见问题
-
-### Duplicate package names not supported
-
-如果出现：
-
-```text
-Duplicate package names not supported:
-- slam_pkg:
-  - src/slam_pkg
-  - src/slam_pkg.original_nobody
-```
-
-说明 `unitree_ws/src` 下还有另一个带 `package.xml` 的备份目录。`colcon` 会扫描 `src` 下所有包，因此需要把备份目录移出 `src`，或者在备份目录中放置 `COLCON_IGNORE`。
-
-当前应只保留：
-
-```text
-unitree_ws/src/slam_pkg/package.xml
-```
-
-可以检查：
+You can also publish `/cmd_vel` directly:
 
 ```bash
-find ~/ros/unitree_ws/src -maxdepth 3 -name package.xml -print
+ros2 topic pub /cmd_vel geometry_msgs/msg/Twist \
+  "{linear: {x: 0.08}, angular: {z: 0.2}}"
 ```
 
-### 家具还是不显示
+## Mode 2: RL G1
 
-先确认重新构建并 source：
+This mode removes the chassis and uses `rl_sar` to control the real G1 joint
+model. `/odom` is generated by `gazebo_model_odom` from Gazebo model state.
+
+Launch Gazebo, G1, robo_env, SLAM, and RViz:
 
 ```bash
 cd ~/ros/unitree_ws
-colcon build --packages-select slam_pkg
+source /opt/ros/humble/setup.bash
+source ~/ros/rl_sar/install/setup.bash
 source install/setup.bash
+ros2 launch slam_pkg g1_rl_slam_sim.launch.py use_slam:=true use_rviz:=true
 ```
 
-再确认安装目录里有资源：
+Run `rl_sim` in another terminal:
 
 ```bash
-ls install/slam_pkg/share/slam_pkg/models
-ls install/slam_pkg/share/slam_pkg/meshes
+cd ~/ros/rl_sar
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+source ~/ros/unitree_ws/install/setup.bash
+ros2 run rl_sar rl_sim
 ```
 
-如果 Gazebo 已经打开，建议关闭后重新启动 launch。
+Recommended order:
 
-### 键盘控制没有反应
+```text
+1. Start g1_rl_slam_sim.launch.py.
+2. Wait until G1 is spawned and joint_state_broadcaster is active.
+3. Start ros2 run rl_sar rl_sim.
+4. Press 0 to stand up.
+5. Press 1 to enter locomotion mode.
+6. Use W/S/A/D/Q/E to move.
+7. Press Space to zero velocity.
+```
 
-检查 `/cmd_vel` 是否有消息：
+Common `rl_sim` keys:
+
+```text
+0      stand up
+1      locomotion mode
+W/S    forward/backward
+A/D    left/right
+Q/E    yaw left/right
+Space  zero velocity
+9      squat/down
+P      passive
+R      reset simulation
+Enter  pause/resume rl_sar simulation loop
+N      navigation mode, consume /cmd_vel
+```
+
+## Verify
+
+Check sensor and map topics:
 
 ```bash
-ros2 topic echo /cmd_vel
+ros2 topic list | grep -E "scan|odom|map|tf|joint_states"
+ros2 topic echo /scan --once
+ros2 topic echo /odom --once
+ros2 topic echo /map --once
 ```
 
-再启动键盘节点并按 `w`、`s`、空格等按键：
+Check TF:
 
 ```bash
-ros2 run slam_pkg keyboard_vel_cmd
+ros2 run tf2_ros tf2_echo odom base_footprint   # chassis G1
+ros2 run tf2_ros tf2_echo odom base             # RL G1
+ros2 run tf2_ros tf2_echo base_footprint lidar_link
+ros2 run tf2_ros tf2_echo base lidar_link
 ```
 
-键盘节点需要当前终端焦点，按键要在运行该节点的终端里输入。
+If `/map` is missing, confirm `/scan`, `/odom`, and the matching base TF are
+valid first. `slam_toolbox` cannot publish a map while scan frames cannot be
+transformed into the odom/base chain.
+
+## Clean Before GitHub Upload
+
+The repository root is `~/ros/unitree_ws/src`. Generated ROS output should not be
+committed:
+
+```bash
+cd ~/ros/unitree_ws/src
+rm -rf build install log
+find . -type d -name __pycache__ -prune -exec rm -rf {} +
+find . -type f -name "*.pyc" -delete
+git status --short
+```
+
+The root `.gitignore` ignores `build/`, `install/`, `log/`, Python caches, and
+CMake output.
+
+Suggested GitHub flow:
+
+```bash
+cd ~/ros/unitree_ws/src
+git status --short
+git add .gitignore slam_pkg
+git commit -m "Refactor G1 SLAM simulation package"
+git remote -v
+git push
+```
+
+For a new remote:
+
+```bash
+git remote add origin git@github.com:<your-user>/<your-repo>.git
+git branch -M main
+git push -u origin main
+```

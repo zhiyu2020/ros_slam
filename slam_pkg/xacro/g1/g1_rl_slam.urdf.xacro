@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<robot name="g1_rl_slam" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!--
+    Real G1 simulation model for rl_sar.
+
+    Unlike g1_slam.urdf.xacro, this model does not add a differential-drive
+    carrier. It reuses g1_description's ros2_control-enabled Gazebo model so
+    rl_sar/src/rl_sar/src/rl_sim.cpp can command the G1 joints directly.
+  -->
+
+  <xacro:include filename="$(find g1_description)/xacro/robot.xacro"/>
+
+  <link name="lidar_link">
+    <visual>
+      <geometry><cylinder radius="0.035" length="0.065"/></geometry>
+      <material name="mid360_dark"><color rgba="0.02 0.025 0.03 1"/></material>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.035" length="0.065"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="lidar_joint" type="fixed">
+    <parent link="mid360_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0 0 0" rpy="0 -0.04014257279586953 0"/>
+  </joint>
+
+  <gazebo reference="lidar_link">
+    <sensor name="g1_mid360_scan" type="ray">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>10</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>720</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.14159</min_angle>
+            <max_angle>3.14159</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.12</min>
+          <max>12.0</max>
+          <resolution>0.01</resolution>
+        </range>
+      </ray>
+      <plugin name="gazebo_ros_g1_lidar" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <remapping>~/out:=scan</remapping>
+        </ros>
+        <output_type>sensor_msgs/LaserScan</output_type>
+        <frame_name>lidar_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+</robot>

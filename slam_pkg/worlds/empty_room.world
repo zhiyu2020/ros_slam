@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="empty_room">
+    <plugin name="gazebo_ros_init" filename="libgazebo_ros_init.so"/>
+    <plugin name="gazebo_ros_factory" filename="libgazebo_ros_factory.so"/>
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <update_rate>50</update_rate>
+    </plugin>
+
+    <gravity>0 0 -9.8</gravity>
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>12 12</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>12 12</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.72 0.72 0.72 1</ambient>
+            <diffuse>0.72 0.72 0.72 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="front_wall">
+      <static>true</static>
+      <pose>5.8 0 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.12 11.6 2.8</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.12 11.6 2.8</size></box></geometry>
+          <material>
+            <ambient>0.85 0.85 0.9 1</ambient>
+            <diffuse>0.85 0.85 0.9 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="back_wall">
+      <static>true</static>
+      <pose>-5.8 0 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.12 11.6 2.8</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.12 11.6 2.8</size></box></geometry>
+          <material>
+            <ambient>0.85 0.85 0.9 1</ambient>
+            <diffuse>0.85 0.85 0.9 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="left_wall">
+      <static>true</static>
+      <pose>0 5.8 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>11.6 0.12 2.8</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>11.6 0.12 2.8</size></box></geometry>
+          <material>
+            <ambient>0.85 0.85 0.9 1</ambient>
+            <diffuse>0.85 0.85 0.9 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="right_wall">
+      <static>true</static>
+      <pose>0 -5.8 1.4 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>11.6 0.12 2.8</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>11.6 0.12 2.8</size></box></geometry>
+          <material>
+            <ambient>0.85 0.85 0.9 1</ambient>
+            <diffuse>0.85 0.85 0.9 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- <model name="front_wall">
+      <static>true</static>
+      <pose>3.0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.12 4.0 1.0</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.12 4.0 1.0</size></box></geometry>
+          <material>
+            <ambient>0.85 0.85 0.9 1</ambient>
+            <diffuse>0.85 0.85 0.9 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model> -->
+
+    <!-- <model name="left_box">
+      <static>true</static>
+      <pose>1.4 1.0 0.25 0 0 0.3</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.6 0.6 0.5</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.6 0.6 0.5</size></box></geometry>
+          <material>
+            <ambient>0.2 0.45 0.75 1</ambient>
+            <diffuse>0.2 0.45 0.75 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model> -->
+
+    <!-- <model name="right_box">
+      <static>true</static>
+      <pose>1.2 -1.0 0.2 0 0 -0.2</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.4 0.8 0.4</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.4 0.8 0.4</size></box></geometry>
+          <material>
+            <ambient>0.75 0.35 0.25 1</ambient>
+            <diffuse>0.75 0.35 0.25 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model> -->
+  </world>
+</sdf>

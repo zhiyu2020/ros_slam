@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="g1_slam_room">
+    <plugin name="gazebo_ros_init" filename="libgazebo_ros_init.so"/>
+    <plugin name="gazebo_ros_factory" filename="libgazebo_ros_factory.so"/>
+
+    <gravity>0 0 -9.8</gravity>
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>12 12</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>12 12</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.72 0.72 0.72 1</ambient>
+            <diffuse>0.72 0.72 0.72 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="front_wall">
+      <static>true</static>
+      <pose>3.4 0 0.6 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.12 5.2 1.2</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.12 5.2 1.2</size></box></geometry></visual>
+      </link>
+    </model>
+
+    <model name="left_wall">
+      <static>true</static>
+      <pose>0 2.6 0.6 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>6.8 0.12 1.2</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>6.8 0.12 1.2</size></box></geometry></visual>
+      </link>
+    </model>
+
+    <model name="right_wall_short">
+      <static>true</static>
+      <pose>-0.9 -2.1 0.6 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>4.2 0.12 1.2</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>4.2 0.12 1.2</size></box></geometry></visual>
+      </link>
+    </model>
+
+    <model name="left_box">
+      <static>true</static>
+      <pose>1.2 1.0 0.25 0 0 0.3</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.6 0.6 0.5</size></box></geometry></collision>
+        <visual name="visual">
+          <geometry><box><size>0.6 0.6 0.5</size></box></geometry>
+          <material><ambient>0.2 0.45 0.75 1</ambient><diffuse>0.2 0.45 0.75 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="right_box">
+      <static>true</static>
+      <pose>1.6 -1.1 0.2 0 0 -0.2</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.4 0.8 0.4</size></box></geometry></collision>
+        <visual name="visual">
+          <geometry><box><size>0.4 0.8 0.4</size></box></geometry>
+          <material><ambient>0.75 0.35 0.25 1</ambient><diffuse>0.75 0.35 0.25 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="pillar">
+      <static>true</static>
+      <pose>-1.7 0.7 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><cylinder><radius>0.22</radius><length>1.0</length></cylinder></geometry></collision>
+        <visual name="visual"><geometry><cylinder><radius>0.22</radius><length>1.0</length></cylinder></geometry></visual>
+      </link>
+    </model>
+  </world>
+</sdf>
