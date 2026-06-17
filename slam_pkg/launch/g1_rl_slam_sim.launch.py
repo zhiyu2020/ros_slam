@@ -124,9 +124,18 @@ def generate_launch_description():
             'use_entity_state_service': ParameterValue(use_entity_state_service, value_type=bool),
             'update_rate': 50.0,
             'odom_frame': 'odom',
-            'base_frame': 'base',
+            # 'base_frame': 'base',
+            'base_frame': 'base_footprint',
             'publish_tf': True,
         }],
+    )
+
+    base_footprint_to_base = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_footprint_to_base',
+        output='screen',
+        arguments=['0', '0', '0', '0', '0', '0', 'base_footprint', 'base'],
     )
 
     slam_toolbox = Node(
@@ -179,7 +188,7 @@ def generate_launch_description():
             target_action=spawn_g1,
             on_exit=[
                 TimerAction(period=2.0, actions=[joint_state_broadcaster]),
-                TimerAction(period=1.0, actions=[odom]),
+                TimerAction(period=1.0, actions=[odom, base_footprint_to_base]),
                 spawn_robo_env_objects,
                 slam_toolbox,
                 rviz,

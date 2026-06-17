@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <memory>
 #include <string>
 
@@ -110,16 +111,59 @@ private:
       });
   }
 
+  double yaw_from_quaternion(const geometry_msgs::msg::Quaternion & q) const
+  {
+    const auto siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
+    const auto cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+    return std::atan2(siny_cosp, cosy_cosp);
+  }
+
+  geometry_msgs::msg::Quaternion quaternion_from_yaw(const double yaw) const
+  {
+    geometry_msgs::msg::Quaternion q;
+    q.x = 0.0;
+    q.y = 0.0;
+    q.z = std::sin(yaw * 0.5);
+    q.w = std::cos(yaw * 0.5);
+    return q;
+  }
+
   void publish_odom(
     const geometry_msgs::msg::Pose & pose,
     const geometry_msgs::msg::Twist & twist,
     const rclcpp::Time & stamp)
   {
+    const auto yaw = yaw_from_quaternion(pose.orientation);
+    if (!initial_pose_set_) {
+      initial_x_ = pose.position.x;
+      initial_y_ = pose.position.y;
+      initial_yaw_ = yaw;
+      initial_pose_set_ = true;
+      RCLCPP_INFO(
+        get_logger(),
+        "Reset odom origin at Gazebo pose x=%.3f y=%.3f yaw=%.3f",
+        initial_x_,
+        initial_y_,
+        initial_yaw_);
+    }
+
+    const auto dx = pose.position.x - initial_x_;
+    const auto dy = pose.position.y - initial_y_;
+    const auto cos_yaw = std::cos(initial_yaw_);
+    const auto sin_yaw = std::sin(initial_yaw_);
+    const auto odom_x = cos_yaw * dx + sin_yaw * dy;
+    const auto odom_y = -sin_yaw * dx + cos_yaw * dy;
+    const auto odom_yaw = yaw - initial_yaw_;
+    const auto yaw_orientation = quaternion_from_yaw(odom_yaw);
+
     nav_msgs::msg::Odometry odom;
     odom.header.stamp = stamp;
     odom.header.frame_id = odom_frame_;
     odom.child_frame_id = base_frame_;
-    odom.pose.pose = pose;
+    odom.pose.pose.position.x = odom_x;
+    odom.pose.pose.position.y = odom_y;
+    odom.pose.pose.position.z = 0.0;
+    odom.pose.pose.orientation = yaw_orientation;
     odom.twist.twist = twist;
     odom_pub_->publish(odom);
 
@@ -144,9 +188,13 @@ private:
   std::string model_states_topic_;
   std::string entity_state_service_;
   double update_rate_{50.0};
+  double initial_x_{0.0};
+  double initial_y_{0.0};
+  double initial_yaw_{0.0};
   bool use_entity_state_service_{true};
   bool publish_tf_{true};
   bool service_request_in_flight_{false};
+  bool initial_pose_set_{false};
 
   rclcpp::Subscription<gazebo_msgs::msg::ModelStates>::SharedPtr model_states_sub_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
